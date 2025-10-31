@@ -2,12 +2,19 @@
  ** This is the Layaut file
  */
 
-import { Tabs } from "expo-router";
+import { AuthProvider } from "@/utils/authContext";
+import { Stack } from "expo-router";
 
 export default function RootLayout() {
   return (
-    <Tabs>
-      <Tabs.Screen name="index" options={{ title: "Home" }} />
-    </Tabs>
+    <AuthProvider>
+      <Stack>
+        <Stack.Screen
+          name="(protected)"
+          options={{ headerShown: false, animation: "fade" }}
+        />
+        <Stack.Screen name="login" options={{ animation: "fade" }} />
+      </Stack>
+    </AuthProvider>
   );
 }
