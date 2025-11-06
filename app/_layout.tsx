@@ -4,6 +4,7 @@
 
 import { useAuthStore } from "@/utils/authStore";
 import { SplashScreen, Stack } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { Platform } from "react-native";
 
@@ -30,6 +31,7 @@ export default function RootLayout() {
 
   return (
     <Stack>
+      <StatusBar style="inverted" />
       {/** Protected Routes **/}
       <Stack.Protected guard={isLoggedIn}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
