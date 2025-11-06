@@ -7,51 +7,21 @@ const isWeb = Platform.OS === "web";
 
 type UserState = {
   isLoggedIn: boolean;
+  _hasHydrated: boolean;
   shouldCreateAccount: boolean;
   hasCompleteOnboarding: boolean;
   logIn: () => void;
   logOut: () => void;
-  completeOnboarding: () => void;
   resetOnboarding: () => void;
+  completeOnboarding: () => void;
+  setHasHydrated: (value: boolean) => void;
 };
-
-// export const useAuthStore = createStore(
-//   persist<UserState>(
-//     (set) => ({
-//       isLoggedIn: false,
-//       shouldCreateAccount: false,
-//       logIn: () => {
-//         set((state) => {
-//           return {
-//             ...state,
-//             isLoggedIn: true,
-//           };
-//         });
-//       },
-//       logOut: () => {
-//         set((state) => {
-//           return {
-//             ...state,
-//             isLoggedIn: false,
-//           };
-//         });
-//       },
-//     }),
-//     {
-//       name: "auth-store",
-//       storage: createJSONStorage(() => ({
-//         setItem,
-//         getItem,
-//         removeItem: deleteItemAsync,
-//       })),
-//     }
-//   )
-// );
 
 export const useAuthStore = create(
   persist<UserState>(
     (set) => ({
       isLoggedIn: false,
+      _hasHydrated: false,
       shouldCreateAccount: false,
       hasCompleteOnboarding: false,
       logIn: () => set((s) => ({ ...s, isLoggedIn: true })),
@@ -60,23 +30,30 @@ export const useAuthStore = create(
         set((s) => ({ ...s, hasCompleteOnboarding: true })),
       resetOnboarding: () =>
         set((s) => ({ ...s, hasCompleteOnboarding: false })),
+      setHasHydrated: (value: boolean) => {
+        set((state) => {
+          return {
+            ...state,
+            _hasHydrated: value,
+          };
+        });
+      },
     }),
     {
       name: "auth-store",
       storage: isWeb
-        ? createJSONStorage(() => ({
-            getItem: async (name: string) =>
-              window.localStorage.getItem(name) ?? null,
-            setItem: async (name: string, value: string) =>
-              window.localStorage.setItem(name, value),
-            removeItem: async (name: string) =>
-              window.localStorage.removeItem(name),
-          }))
+        ? createJSONStorage(() => localStorage)
         : createJSONStorage(() => ({
-            getItem: SecureStore.getItem,
-            setItem: SecureStore.setItem,
-            removeItem: SecureStore.deleteItemAsync,
+            setItem: (key: string, value: string) =>
+              SecureStore.setItemAsync(key, value),
+            getItem: (key: string) => SecureStore.getItemAsync(key),
+            removeItem: (key: string) => SecureStore.deleteItemAsync(key),
           })),
+      onRehydrateStorage: () => {
+        return (state) => {
+          state?.setHasHydrated(true);
+        };
+      },
     }
   )
 );

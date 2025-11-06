@@ -3,12 +3,31 @@
  */
 
 import { useAuthStore } from "@/utils/authStore";
-import { Stack } from "expo-router";
+import { SplashScreen, Stack } from "expo-router";
+import { useEffect } from "react";
+import { Platform } from "react-native";
 
 // const isLoggedIn = false;
 
+const isWeb = Platform.OS === "web";
+
+if (!isWeb) {
+  SplashScreen.preventAutoHideAsync();
+}
+
 export default function RootLayout() {
-  const { isLoggedIn, hasCompleteOnboarding } = useAuthStore();
+  const { isLoggedIn, hasCompleteOnboarding, _hasHydrated } = useAuthStore();
+
+  useEffect(() => {
+    if (_hasHydrated) {
+      SplashScreen.hideAsync();
+    }
+  }, [_hasHydrated]);
+
+  if (!_hasHydrated && !isWeb) {
+    return null;
+  }
+
   return (
     <Stack>
       {/** Protected Routes **/}
@@ -21,6 +40,7 @@ export default function RootLayout() {
         <Stack.Screen name="sign-in" />
         <Stack.Screen name="create-account" />
       </Stack.Protected>
+
       <Stack.Protected guard={!hasCompleteOnboarding}>
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
       </Stack.Protected>
